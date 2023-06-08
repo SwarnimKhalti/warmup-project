@@ -1,0 +1,17 @@
+{
+  "name": "JSON-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "json-server --watch db.json --port 5000"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "json-server": "^0.17.3",
+    "nodemon": "^2.0.22",
+    "swagger-ui-express": "^4.6.3"
+  }
+}
