@@ -4,13 +4,29 @@
       "id": 4991,
       "task": "Complete Task",
       "date": "2023-06-07",
-      "category": "learn",
+      "category": "Learn",
       "time": "18:00",
       "done": false
+    },
+    {
+      "task": "Let me Check",
+      "category": "Office",
+      "date": "2023-06-12",
+      "done": false,
+      "time": "12:00",
+      "id": 4992
+    },
+    {
+      "task": "Let me Check Once",
+      "category": "Office",
+      "date": "2023-06-12",
+      "done": true,
+      "time": "12:00",
+      "id": 4993
     }
   ],
   "categories": [
     "Office",
-    "learn"
+    "Learn"
   ]
 }
