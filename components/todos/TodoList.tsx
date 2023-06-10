@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Badge,
   Button,
@@ -13,6 +13,8 @@ import {
 } from "@chakra-ui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/pages/api/myApi";
+import { useDispatch } from "react-redux";
+import { setFormValues } from "@/store/slices/listSlice";
 import {
   CalendarIcon,
   CheckIcon,
@@ -31,7 +33,9 @@ interface Todo {
 }
 
 const TodoList = () => {
+  const [taskId, setTaskId] = useState(0);
   const queryClient = useQueryClient();
+  const dispatch = useDispatch();
 
   // Delete Data (Delete)
 
@@ -64,13 +68,12 @@ const TodoList = () => {
 
   const statusHandler = (status: boolean, id: number) => {
     const newStatus = Boolean(status ? false : true);
-    console.log(id, newStatus);
 
     statusChangeMutation({ id: id, data: newStatus });
   };
 
   //Display Tasks (Get)
-  const { data } = useQuery({
+  const { data: data1 } = useQuery({
     queryKey: ["lists"],
     queryFn: () =>
       api.get("/todo").then((response) => {
@@ -78,9 +81,30 @@ const TodoList = () => {
       }),
   });
 
+  // Fetch Task via ID and update the slice:
+  const { data: data2 } = useQuery({
+    queryKey: ["task"],
+    queryFn: () =>
+      api.get(`/todo/${taskId}`).then((response) => {
+        return response.data;
+      }),
+    onSuccess: (data2) => {
+      setTaskId(0);
+
+      return dispatch(setFormValues(data2));
+    },
+    enabled: taskId ? true : false,
+  });
+
+  //Edit Tasks (Get / Patch)
+
+  const editFormHandler = (val: number) => {
+    setTaskId(val);
+  };
+
   return (
     <Container mt="1rem" maxW="50rem">
-      {data?.map((list: Todo) => {
+      {data1?.map((list: Todo) => {
         const listDate = new Date(list.date);
         const tempDate = String(listDate.getDate());
         const toDoDate = tempDate.padStart(2, "0");
@@ -167,18 +191,23 @@ const TodoList = () => {
                     </ListItem>
                   </Stack>
                   <Stack direction="column">
-                    <Button h="3rem">
+                    <Button h="3rem" onClick={() => editFormHandler(list.id)}>
                       <Text fontSize="3xl">
                         <EditIcon />
                       </Text>
                     </Button>
-                    <Button h="3rem" onClick={() => deleteHandler(list.id)}>
+                    <Button
+                      title="Delete Task"
+                      h="3rem"
+                      onClick={() => deleteHandler(list.id)}
+                    >
                       <Text fontSize="3xl">
                         {" "}
                         <DeleteIcon />{" "}
                       </Text>
                     </Button>
                     <Button
+                      title="Update Status"
                       h="3rem"
                       onClick={() => statusHandler(list.done, list.id)}
                     >

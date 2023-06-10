@@ -1,24 +1,34 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Button,
   Card,
   CardBody,
   Container,
   FormControl,
-  FormLabel,
   Input,
   Select,
-  SelectField,
   Stack,
 } from "@chakra-ui/react";
-import { AddIcon } from "@chakra-ui/icons";
-import { Formik, Form, Field, ErrorMessage, useFormik } from "formik";
+import { AddIcon, EditIcon } from "@chakra-ui/icons";
+import { useFormik } from "formik";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/pages/api/myApi";
+import { useSelector } from "react-redux";
+
+interface taskType {
+  id: number;
+  task: string;
+  time: string;
+  date: string;
+  category: string;
+  done: boolean;
+}
 
 const TodoForm = () => {
+  const [editTaskId, setEditTaskId] = useState(0);
   const queryClient = useQueryClient();
   const defaultDate = new Date().toLocaleDateString();
+  const defaultData = useSelector((state) => state.lists.data);
 
   const newPostMutation = useMutation({
     mutationFn: (data) => {
@@ -26,6 +36,18 @@ const TodoForm = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(["lists"]);
+    },
+  });
+
+  const { mutate: editTaskMutation } = useMutation({
+    mutationFn: (data: any) => {
+      return api.patch(`/todo/${data.id}`, { ...data });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["lists"]);
+    },
+    onError: (error) => {
+      console.log(error);
     },
   });
 
@@ -42,15 +64,39 @@ const TodoForm = () => {
 
     newPostMutation.mutate(newObj);
   };
-  const initVal = {
-    task: "Task Name ...",
-    category: "",
-    date: "2023-06-09",
-    done: false,
-    time: "00:00",
+
+  const updateTask = (data: any) => {
+    const upStatus = data.done === "false" ? Boolean(false) : Boolean(true);
+
+    const tempTask = data.task;
+    const tempDone = upStatus;
+    const tempTime = data.time;
+    const tempCat = data.category;
+    const tempDate = data.date;
+    const tempId = data.id;
+
+    // const updateObj = {
+    //   id: tempId,
+    //   task: tempTask,
+    //   done: tempDone,
+    //   time: tempTime,
+    //   category: tempCat,
+    //   date: tempDate,
+    // };
+    // console.log("data", updateObj);
+
+    editTaskMutation({
+      id: tempId,
+      task: tempTask,
+      time: tempTime,
+      done: tempDone,
+      date: tempDate,
+      category: tempCat,
+    });
   };
+
   const formik = useFormik({
-    initialValues: initVal,
+    initialValues: defaultData,
     onSubmit: (values) => {
       addNewTask(values);
     },
@@ -60,7 +106,7 @@ const TodoForm = () => {
   return (
     <Container mt="1rem" maxW="50rem">
       <Card>
-        <CardBody>
+        <CardBody rounded={10}>
           <form onSubmit={formik.handleSubmit}>
             <FormControl>
               <Input
@@ -87,7 +133,6 @@ const TodoForm = () => {
                 </Select>
                 <Input
                   placeholder="Select Date"
-                  size="md"
                   type="date"
                   w="50%"
                   id="date"
@@ -106,12 +151,12 @@ const TodoForm = () => {
                   defaultValue={formik.values.done}
                   size="lg"
                 >
+                  {" "}
                   <option value="false">Pending</option>
                   <option value="true">Completed</option>
                 </Select>
                 <Input
                   placeholder="Select Time"
-                  size="md"
                   type="time"
                   w="40%"
                   id="time"
@@ -119,9 +164,22 @@ const TodoForm = () => {
                   defaultValue={formik.values.time}
                   size="lg"
                 />
-                <Button size="lg" w="20%" type="submit">
-                  <AddIcon />
-                </Button>
+                {formik.values.id ? (
+                  <Button
+                    size="lg"
+                    w="20%"
+                    type="button"
+                    colorScheme="
+                  yellow"
+                    onClick={() => updateTask(formik.values)}
+                  >
+                    <EditIcon />
+                  </Button>
+                ) : (
+                  <Button size="lg" w="20%" type="submit" colorScheme="teal">
+                    <AddIcon />
+                  </Button>
+                )}
               </Stack>
             </FormControl>
           </form>
